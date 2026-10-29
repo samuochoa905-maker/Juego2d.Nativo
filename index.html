@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recoge los ataúdes</title>
+
+    <style>
+        body {
+            background-color: #351010;
+            font-family: 'Trebuchet MS', Arial, sans-serif;
+            text-align: center;
+            color: white;
+            background-image: url("Castillo\ gótico\ bajo\ la\ luna\ roja.png");
+            background-repeat: no-repeat;
+            background-position: center;
+            background-size: cover;
+        }
+
+        h1 {
+            color: #FF7518;
+            font-family: Impact, sans-serif;
+            text-shadow: 3px 3px black;
+        }
+
+        #tablero {
+            display: grid;
+            grid-template-columns: repeat(10, 40px);
+            justify-content: center;
+            margin: 20px auto;
+            width: fit-content;
+            border: 5px solid red;
+
+            background-size: cover;
+            background-position: center;
+        }
+
+        .casilla {
+            width: 40px;
+            height: 40px;
+            background-color: rgba(0, 0, 0, 0.65);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 25px;
+        }
+
+        .casilla:nth-child(even) {
+            background-color: rgba(53, 16, 16, 0.65);
+        }
+
+        button {
+            background-color: #b81414;
+            color: white;
+            font-family: Impact, sans-serif;
+            font-size: 24px;
+            border: 3px solid black;
+            border-radius: 20px;
+            padding: 15px 30px;
+            cursor: pointer;
+            box-shadow: 0 5px 0 #1c0808;
+            transition: all 0.3s ease;
+        }
+
+        button:hover {
+            transform: translateY(-8px) scale(1.12);
+            border-radius: 50px;
+            background-color: #b81414;
+            box-shadow: 0 10px 20px red;
+        }
+    </style>
+</head>
+
+<body>
+    <audio id="risaMalvada" src="freesound_community-evil-laugh-89423.mp3"></audio>
+    <audio id="sonidoAtaud" src="dragon-studio-spooky-scary-sound-410563.mp3"></audio>
+    <audio id="musica" loop>
+        <source src="Fortnite _ Eerie Lobby Music (C1S6 Battle Pass) [z9FLU5pRFew].mp3" type="audio/mpeg">
+    </audio>
+
+    <h1>Consigue los ataúdes</h1>
+
+    <p>Puntos: <span id="puntos">0</span> / 10</p>
+
+    <div id="tablero"></div>
+
+    <p id="mensaje">Usa W, A, S y D para moverte.</p>
+
+    <button id="reiniciar">Reiniciar juego</button>
+
+    <script>
+        let jugadorX = 0;
+        let jugadorY = 0;
+
+        let ataudX;
+        let ataudY;
+
+        let puntos = 0;
+        let terminado = false;
+
+        const tablero = document.getElementById("tablero");
+        const textoPuntos = document.getElementById("puntos");
+        const mensaje = document.getElementById("mensaje");
+        const boton = document.getElementById("reiniciar");
+        const musica = document.getElementById("musica");
+
+        boton.addEventListener("click", function () {
+            musica.volume = 0.25;
+            musica.play();
+        });
+
+        function crearTablero() {
+            tablero.innerHTML = "";
+
+            for (let i = 0; i < 100; i++) {
+                let casilla = document.createElement("div");
+                casilla.className = "casilla";
+                tablero.appendChild(casilla);
+            }
+
+            dibujar();
+        }
+
+        function crearAtaud() {
+            do {
+                ataudX = Math.floor(Math.random() * 10);
+                ataudY = Math.floor(Math.random() * 10);
+            } while (ataudX === jugadorX && ataudY === jugadorY);
+        }
+
+        function dibujar() {
+            let casillas = document.querySelectorAll(".casilla");
+
+            casillas.forEach(function (casilla) {
+                casilla.textContent = "";
+            });
+
+            let posicionJugador = jugadorY * 10 + jugadorX;
+            let posicionAtaud = ataudY * 10 + ataudX;
+
+            casillas[posicionJugador].textContent = "🧛‍♂️";
+
+            if (!terminado) {
+                casillas[posicionAtaud].textContent = "⚰️";
+            }
+        }
+
+        document.addEventListener("keydown", function (event) {
+            if (terminado) {
+                return;
+            }
+
+            let tecla = event.key.toLowerCase();
+
+            if (["w", "a", "s", "d"].includes(tecla)) {
+                event.preventDefault();
+            }
+
+            if (tecla === "w" && jugadorY > 0) {
+                jugadorY--;
+            }
+
+            if (tecla === "s" && jugadorY < 9) {
+                jugadorY++;
+            }
+
+            if (tecla === "a" && jugadorX > 0) {
+                jugadorX--;
+            }
+
+            if (tecla === "d" && jugadorX < 9) {
+                jugadorX++;
+            }
+
+            comprobarAtaud();
+            dibujar();
+        });
+
+        function comprobarAtaud() {
+            if (jugadorX === ataudX && jugadorY === ataudY) {
+
+                document.getElementById("sonidoAtaud").currentTime = 0;
+                document.getElementById("sonidoAtaud").play();
+
+                puntos++;
+                textoPuntos.textContent = puntos;
+
+                if (puntos === 10) {
+                    terminado = true;
+                    mensaje.textContent = "Ganaste";
+                    let risa = document.getElementById("risaMalvada");
+                    risa.currentTime = 0;
+                    risa.play();
+                } else {
+                    mensaje.textContent = "Recogiste un ataud";
+                    crearAtaud();
+                }
+            }
+        }
+
+        function reiniciar() {
+            jugadorX = 0;
+            jugadorY = 0;
+            puntos = 0;
+            terminado = false;
+
+            textoPuntos.textContent = puntos;
+            mensaje.textContent = "Usa W, A, S y D para moverte.";
+
+            crearAtaud();
+            crearTablero();
+        }
+
+        boton.addEventListener("click", reiniciar);
+
+        // Iniciar el juego
+        reiniciar();
+    </script>
+
+</body>
+
+</html>
